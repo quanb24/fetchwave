@@ -103,7 +103,7 @@
     },
     "dmg": {
       "title": "${productName} ${version}",
-      "iconSize": 96
+      "writeUpdateInfo": false
     },
     "win": {
       "target": [
