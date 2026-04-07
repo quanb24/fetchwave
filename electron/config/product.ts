@@ -1,0 +1,37 @@
+/**
+ * Single source of truth for product identity.
+ * Imported by both main and renderer (via the renderer mirror).
+ */
+export const PRODUCT = {
+  name: 'Fetchwave',
+  shortName: 'Fetchwave',
+  tagline: 'A premium desktop downloader for the open web.',
+  description:
+    'Fetchwave turns the power of yt-dlp into a calm, beautiful desktop experience. Built for people who want professional-grade downloads — playlists, formats, retries, queues — without ever touching a terminal.',
+  appId: 'app.fetchwave.desktop',
+  version: '1.0.0-rc.1',
+  channel: 'release-candidate',
+  copyright: '© 2026 Fetchwave',
+  links: {
+    website: 'https://fetchwave.app',
+    repo: 'https://github.com/quanb24/fetchwave',
+    issues: 'https://github.com/quanb24/fetchwave/issues',
+    docs: 'https://github.com/quanb24/fetchwave#readme',
+  },
+  attribution: {
+    ytdlp: {
+      name: 'yt-dlp',
+      url: 'https://github.com/yt-dlp/yt-dlp',
+      license: 'Unlicense',
+      note: 'Fetchwave orchestrates yt-dlp as an external process and is not affiliated with the yt-dlp project.',
+    },
+    ffmpeg: {
+      name: 'FFmpeg',
+      url: 'https://ffmpeg.org',
+      license: 'LGPL/GPL',
+      note: 'Used for muxing audio and video streams when required.',
+    },
+  },
+} as const;
+
+export type ProductInfo = typeof PRODUCT;

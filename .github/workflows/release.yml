@@ -1,0 +1,110 @@
+name: Release
+
+# Triggered by pushing a semver tag (v1.2.3 or v1.2.3-rc.1).
+# Builds macOS (arm64 + x64) and Windows (x64), uploads installers and the
+# electron-updater metadata files (latest.yml, latest-mac.yml, *.blockmap)
+# to a single GitHub Release. Pre-releases (anything containing a hyphen)
+# are published as GitHub pre-releases.
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+-*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to build (e.g. v1.0.0)'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-14         # Apple Silicon runner — builds arm64 + x64
+            platform: mac
+            fetch_script: ./scripts/fetch-binaries.sh
+            package_script: package:mac
+          - os: windows-latest
+            platform: win
+            fetch_script: ./scripts/fetch-binaries.ps1
+            package_script: package:win
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify version matches tag
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF##*/}"
+          TAG="${TAG#v}"
+          PKG_VERSION="$(node -p "require('./package.json').version")"
+          if [ "$TAG" != "$PKG_VERSION" ]; then
+            echo "::error::Tag v$TAG does not match package.json version $PKG_VERSION"
+            exit 1
+          fi
+          echo "Version OK: $PKG_VERSION"
+
+      - name: Fetch bundled binaries (macOS / Linux)
+        if: matrix.platform != 'win'
+        run: ${{ matrix.fetch_script }}
+
+      - name: Fetch bundled binaries (Windows)
+        if: matrix.platform == 'win'
+        run: powershell -ExecutionPolicy Bypass -File ${{ matrix.fetch_script }}
+
+      - name: Build renderer + main
+        run: npm run build
+
+      - name: Package & publish (macOS)
+        if: matrix.platform == 'mac'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Code signing — populate these secrets when the cert is ready.
+          # CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
+          # CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+          # APPLE_ID: ${{ secrets.APPLE_ID }}
+          # APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          # APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: npx electron-builder --mac --arm64 --x64 --publish always
+
+      - name: Package & publish (Windows)
+        if: matrix.platform == 'win'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          # CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+        run: npx electron-builder --win --x64 --publish always
+
+      - name: Upload artifacts (debug/inspection)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fetchwave-${{ matrix.platform }}
+          path: |
+            release/*.dmg
+            release/*.zip
+            release/*.exe
+            release/*.blockmap
+            release/latest*.yml
+          if-no-files-found: ignore
+          retention-days: 7

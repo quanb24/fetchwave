@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body, #root { height: 100%; }
+  body {
+    @apply bg-bg text-fg font-sans antialiased;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-bg-border rounded-full;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-bg-border-strong; background-clip: content-box; }
+  ::-webkit-scrollbar-track { background: transparent; }
+
+  /* selection */
+  ::selection { background: rgba(110,139,255,0.35); color: #fff; }
+
+  button, input, select, textarea { font: inherit; }
+}
+
+@layer components {
+  .drag {
+    -webkit-app-region: drag;
+  }
+  .no-drag {
+    -webkit-app-region: no-drag;
+  }
+  .glass {
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0) 40%);
+  }
+  .label {
+    @apply text-[11px] uppercase tracking-[0.08em] text-fg-muted font-medium;
+  }
+  .hairline {
+    @apply border-t border-bg-border;
+  }
+}
+
+@layer utilities {
+  .bg-shimmer {
+    background: linear-gradient(90deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.02) 100%);
+    background-size: 200% 100%;
+  }
+}
