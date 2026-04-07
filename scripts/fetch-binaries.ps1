@@ -30,4 +30,4 @@ Copy-Item (Join-Path $Inner.FullName "bin\ffprobe.exe") -Destination (Join-Path 
 Remove-Item -Recurse -Force $Tmp
 
 Write-Host ""
-Write-Host "✓ Binaries fetched into $Bin"
+Write-Host "Done. Binaries fetched into $Bin"
