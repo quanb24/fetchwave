@@ -76,6 +76,12 @@ export const SettingsScreen: React.FC = () => {
     setDraft((d) => (d ? { ...d, ...patch } : d));
   };
 
+  // Runtime version from app.getVersion(), updated after auto-update installs.
+  const [runtimeVersion, setRuntimeVersion] = useState<string>(PRODUCT.version);
+  useEffect(() => {
+    void window.api.system.getVersion().then((r) => { if (r.ok) setRuntimeVersion(r.data); });
+  }, []);
+
   const handleSave = async () => {
     if (!draft) return;
     await persist(draft);
@@ -413,7 +419,7 @@ export const SettingsScreen: React.FC = () => {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <h2 className="text-base font-semibold text-fg">{PRODUCT.name}</h2>
-                <Badge tone="muted">v{PRODUCT.version}</Badge>
+                <Badge tone="muted">v{runtimeVersion}</Badge>
                 <Badge tone="accent">{PRODUCT.channel}</Badge>
               </div>
               <p className="text-xs text-fg-muted mt-1">{PRODUCT.tagline}</p>
@@ -469,7 +475,7 @@ export const SettingsScreen: React.FC = () => {
       </Group>
 
       <div className="text-center text-[11px] text-fg-faint pt-2 pb-4">
-        {PRODUCT.name} v{PRODUCT.version} · {PRODUCT.copyright}
+        {PRODUCT.name} v{runtimeVersion} · {PRODUCT.copyright}
       </div>
     </div>
   );

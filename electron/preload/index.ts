@@ -41,6 +41,8 @@ const api: ApiSurface = {
     readClipboard: () => ipcRenderer.invoke(IPC.systemReadClipboard),
     revealFile: (p) => ipcRenderer.invoke(IPC.systemRevealFile, p),
     openFile: (p) => ipcRenderer.invoke(IPC.systemOpenFile, p),
+    getVersion: () => ipcRenderer.invoke(IPC.systemGetVersion),
+    restart: () => ipcRenderer.invoke(IPC.systemRestart),
   },
   on: {
     jobUpdated: (cb) => {

@@ -36,6 +36,8 @@ export const IPC = {
   systemReadClipboard: 'system:readClipboard',
   systemRevealFile: 'system:revealFile',
   systemOpenFile: 'system:openFile',
+  systemGetVersion: 'system:getVersion',
+  systemRestart: 'system:restart',
   evtJobUpdated: 'evt:jobUpdated',
   evtJobAdded: 'evt:jobAdded',
   evtJobRemoved: 'evt:jobRemoved',
@@ -106,6 +108,8 @@ export interface ApiSurface {
     readClipboard(): Promise<IpcResult<string>>;
     revealFile(p: string): Promise<IpcResult<void>>;
     openFile(p: string): Promise<IpcResult<void>>;
+    getVersion(): Promise<IpcResult<string>>;
+    restart(): Promise<IpcResult<void>>;
   };
   on: {
     jobUpdated(cb: (job: DownloadJob) => void): () => void;

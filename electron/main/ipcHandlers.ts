@@ -107,6 +107,15 @@ export function registerIpc(getWindow: () => BrowserWindow | null): DownloadQueu
     } catch (e) { return fail(e); }
   });
 
+  ipcMain.handle(IPC.systemGetVersion, async () => ok(app.getVersion()));
+
+  ipcMain.handle(IPC.systemRestart, async () => {
+    logger.info('[ipc] system:restart requested');
+    app.relaunch();
+    app.exit(0);
+    return ok(undefined);
+  });
+
   ipcMain.handle(IPC.systemRevealFile, async (_e, p: string) => {
     try {
       if (!p) return fail(new Error('No file path is recorded for this download.'));
