@@ -87,13 +87,30 @@ jobs:
           # APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: npx electron-builder --mac --arm64 --x64 --publish always
 
-      - name: Package & publish (Windows)
+      # Windows: build first, then upload separately. electron-builder's
+      # built-in publisher times out frequently on the windows-latest runner
+      # for large (~180 MB) installers, so we use gh CLI which has better
+      # retry semantics for big uploads.
+      - name: Package (Windows)
         if: matrix.platform == 'win'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
-          # CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
-        run: npx electron-builder --win --x64 --publish always
+        run: npx electron-builder --win --x64 --publish never
+
+      - name: Upload Windows artifacts to release
+        if: matrix.platform == 'win'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -e
+          TAG="${GITHUB_REF##*/}"
+          for f in release/*.exe release/*.exe.blockmap release/latest.yml; do
+            if [ -f "$f" ]; then
+              echo "Uploading $f"
+              gh release upload "$TAG" "$f" --clobber --repo "$GITHUB_REPOSITORY"
+            fi
+          done
 
       - name: Upload artifacts (debug/inspection)
         if: always()
