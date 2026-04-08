@@ -2,204 +2,207 @@
 
 # Fetchwave
 
-**A premium desktop downloader for the open web.**
+### A premium desktop downloader for the open web.
 
-Fast, modern, and built on yt-dlp.
+Save videos, playlists, and music from your favorite sites — without ever touching a terminal.
 
-[Website](https://fetchwave.app) · [Releases](https://github.com/fetchwave/fetchwave/releases) · [Issues](https://github.com/fetchwave/fetchwave/issues) · [Releasing →](./RELEASING.md)
+**[⬇ Download for Mac or Windows](https://github.com/quanb24/fetchwave/releases)**
 
-[![CI](https://github.com/fetchwave/fetchwave/actions/workflows/ci.yml/badge.svg)](https://github.com/fetchwave/fetchwave/actions/workflows/ci.yml)
-[![Release](https://github.com/fetchwave/fetchwave/actions/workflows/release.yml/badge.svg)](https://github.com/fetchwave/fetchwave/actions/workflows/release.yml)
+[![Release](https://github.com/quanb24/fetchwave/actions/workflows/release.yml/badge.svg)](https://github.com/quanb24/fetchwave/actions/workflows/release.yml)
+[![CI](https://github.com/quanb24/fetchwave/actions/workflows/ci.yml/badge.svg)](https://github.com/quanb24/fetchwave/actions/workflows/ci.yml)
 
 </div>
 
 ---
 
-## What is Fetchwave?
+## What it is
 
-Fetchwave turns the power of [yt-dlp](https://github.com/yt-dlp/yt-dlp) into a calm, beautiful desktop experience. It's built for people who want professional-grade downloads — playlists, formats, retries, queues — without ever touching a terminal.
+Fetchwave is a beautiful, calm desktop app for saving video and audio from the open web. You paste a link, click a button, and the file lands in your downloads folder. That's it.
 
-Think of it as a polished shell around the most powerful video downloader in the world.
+It's built on the best video downloader in existence ([yt-dlp](https://github.com/yt-dlp/yt-dlp)) but wraps it in an interface that anyone can use. No commands. No Python. No setup. Just install the app and start downloading.
+
+Whether you want a 4K music video, an entire playlist, or just the audio as an MP3 — Fetchwave handles it in three clicks.
+
+---
+
+## Key features
+
+- **Works out of the box.** Install the app and you're ready. Nothing else to download or configure.
+- **Real 4K downloads.** Get videos in their original 2160p quality, automatically merged into a clean MP4 file.
+- **Audio extraction.** Convert any video to MP3 with one click.
+- **Playlists.** Drop in a playlist link and Fetchwave queues every video for you.
+- **Smart queue.** Pause, resume, cancel, and prioritize downloads. Your queue survives app restarts.
+- **Format picker.** Choose exact resolution, container, or audio-only — or let Fetchwave pick the best.
+- **Self-healing.** If something breaks, Fetchwave fixes itself with one click.
+- **Auto-updates.** New versions install themselves in the background.
+- **Calm, dark interface.** Designed to feel premium, not cluttered.
+- **Your files stay yours.** Everything runs locally on your computer. No accounts, no cloud, no tracking.
+
+---
 
 ## Screenshots
 
-> Screenshots will be added before the public release.
+| | |
+|---|---|
+| ![Home screen](assets/screenshots/home.png) | ![Active downloads queue](assets/screenshots/queue.png) |
+| **Home** — paste a link, pick a quality | **Queue** — watch your downloads in real time |
+| ![Format selection modal](assets/screenshots/format.png) | ![Settings and runtime status](assets/screenshots/settings.png) |
+| **Format picker** — choose exactly what you want | **Settings** — everything in one place |
 
-| Home | Queue | Format Picker |
-| --- | --- | --- |
-| `assets/screenshots/home.png` | `assets/screenshots/queue.png` | `assets/screenshots/format.png` |
+---
 
-## Features
+## Download
 
-- **Premium UI** — dark, minimal, card-based, designed like a paid utility
-- **Smart queue** — concurrency control, priorities, pause / resume / cancel, persistent across restarts
-- **Playlists** — automatic expansion into parent + child jobs with grouped progress
-- **Format picker** — clean modal for resolution, container, audio-only
-- **Retries** — exponential backoff with structured error classification
-- **Resume support** — `.part` continuation, partial-file aware
-- **Subtitles** — write or embed, multi-language
-- **Network** — proxy, cookies, rate limit
-- **Desktop-grade** — secure IPC, sandboxed renderer, single-instance lock, native window chrome
+**👉 [Get the latest version here](https://github.com/quanb24/fetchwave/releases/latest)**
 
-## Requirements
+Pick the file that matches your computer:
 
-**For end users: nothing.** Fetchwave ships with its own copies of yt-dlp, ffmpeg, and ffprobe. Download the installer, run it, paste a link. No Python, no Node, no PATH setup.
+| Your computer | File to download |
+|---|---|
+| **Windows 10 or 11** | `Fetchwave-x.x.x-win-x64.exe` |
+| **Mac with Apple Silicon** *(M1, M2, M3, M4)* | `Fetchwave-x.x.x-mac-arm64.dmg` |
+| **Mac with Intel chip** | `Fetchwave-x.x.x-mac-x64.dmg` |
 
-**For developers building from source:**
+> **Not sure which Mac you have?** Click the Apple logo in the top-left of your screen → **About This Mac**. If it says "Apple M1, M2, M3, or M4" anywhere, choose the **arm64** file. If it says "Intel", choose the **x64** file.
 
-- **Node.js** 18+
-- A one-time run of `scripts/fetch-binaries.sh` (macOS/Linux) or `scripts/fetch-binaries.ps1` (Windows) to populate `resources/bin/<os>/<arch>/` with the binaries that get bundled into packaged builds.
+---
 
-## Install (end users)
+## How it works
 
-Download the latest installer from the [Releases page](https://github.com/fetchwave/fetchwave/releases):
+Three clicks. That's the entire app.
 
-| Platform | Artifact |
-| --- | --- |
-| macOS (Apple Silicon / Intel) | `Fetchwave-<version>-mac-arm64.dmg` / `-x64.dmg` |
-| Windows 10/11 | `Fetchwave-<version>-win-x64.exe` |
-| Linux | `Fetchwave-<version>-linux-x64.AppImage` / `.deb` |
+#### 1. Paste a link
+Copy any video URL from your browser and paste it into Fetchwave.
 
-## Develop
+#### 2. (Optional) Pick a format
+Click **Choose format** if you want a specific resolution or audio-only. Otherwise just hit **Download** for the default.
 
-```bash
-git clone https://github.com/fetchwave/fetchwave
-cd fetchwave
-npm install
-npm run dev
-```
+#### 3. Download
+The file lands in your downloads folder when it's done. Click **Open file** to play it, or **Show in Finder** to find it.
 
-This launches Vite + Electron with hot reload.
+---
 
-## Package
+## A real example
 
-Before packaging, fetch the bundled binaries for the target platform (one-time per machine):
+Let's say you want to save a music video as an MP3:
 
-```bash
-./scripts/fetch-binaries.sh     # macOS / Linux
-./scripts/fetch-binaries.ps1    # Windows (PowerShell)
-```
+1. Open the music video in your browser and copy the link
+2. Open Fetchwave
+3. Click the **Audio only** quality preset on the home screen
+4. Paste the link and click **Download**
+5. A few seconds later, your `.mp3` is in `~/Downloads/Fetchwave/`
 
-Then:
+Want the full 4K video instead? Click **Choose format**, pick **2160p**, then **Add to queue**. Same idea.
 
-```bash
-npm run package           # current OS
-npm run package:mac       # macOS dmg + zip (arm64 + x64)
-npm run package:win       # Windows nsis installer + portable
-npm run package:linux     # AppImage + deb
-```
+---
 
-Output lands in `release/`.
+## First launch
 
-### How bundling works
+Because Fetchwave is a brand-new independent app, your computer hasn't seen it before and will show a small one-time warning the first time you open it. This is normal — every new app gets this until it's been around long enough.
 
-`electron-builder` copies `resources/bin/<os>/<arch>/` into the packaged app's `process.resourcesPath/bin/<os>/<arch>/` via `extraResources`. At runtime, `electron/services/runtimePaths.ts` resolves binary paths based on `app.isPackaged`, `process.platform`, and `process.arch`. Settings default to the sentinel value `'bundled'`, which the resolver translates into the real path. Advanced users can override with an absolute path in Settings → Advanced binary overrides.
+**On macOS:**
+1. Drag Fetchwave from the DMG into your **Applications** folder
+2. Open your Applications folder and **right-click** Fetchwave → **Open**
+3. Click **Open** in the dialog that appears
 
-See [`resources/README.md`](./resources/README.md) for the binary layout and sources.
+You only do this once. From then on, Fetchwave opens like any other app.
 
-> Code signing and notarization are not configured by default. Set up `electron-builder` `mac.identity`, `win.certificateFile`, and the relevant environment variables before producing public artifacts.
+**On Windows:**
+1. Double-click the `.exe` installer
+2. If you see *"Windows protected your PC"*, click **More info** → **Run anyway**
+3. Click through the installer (Next → Install → Finish)
 
-## Architecture
+You only do this once. From then on, Fetchwave opens from your Start menu.
 
-```
-electron/
-  main/        Electron main process, window, IPC wiring, persistence
-  preload/     contextBridge surface (window.api)
-  services/    yt-dlp execution, queue, arg builder, progress parser
-  domain/      typed models (DownloadJob, MediaInfo, AppSettings, AppError)
-  ipc/         IPC channel constants + ApiSurface contract
-  config/      product identity + defaults
-  utils/       fs, ids
-src/
-  screens/     Home, Queue, History, Settings
-  components/  Sidebar, TopBar, primitives, ui/* (Card, Badge, Modal, Toast, Toggle)
-  store/       Zustand stores (queue, settings, history)
-  config/      product identity (renderer mirror)
-assets/        icons, screenshots, brand assets
-```
+---
 
-### Security model
+## Updates
 
-- `contextIsolation: true`, `sandbox: true`, `nodeIntegration: false`
-- All IPC goes through a typed `contextBridge` surface
-- yt-dlp is spawned with `shell: false` and an argv array — no string concatenation
-- URLs validated against a strict regex before spawn
-- CSP set in `index.html`
-- External links open in the system browser
+Fetchwave checks for new versions a few seconds after launch and downloads them quietly in the background. When an update is ready, you'll see a small notification at the top of the app — click **Restart & install** and you're done.
 
-## Self-maintenance
+You can also check manually anytime in **Settings → Updates**.
 
-Fetchwave is designed to take care of itself.
-
-### Auto updates
-
-Configured via `electron-updater` against this repo's GitHub Releases. On launch (3 s after the window opens) Fetchwave checks for a newer release. If one exists it downloads in the background, shows a banner with progress, and waits for you to click **Restart & install** in Settings → Updates. You can disable the automatic check or trigger one manually from the same panel.
-
-### Self-heal (Repair Runtime)
-
-If the bundled `yt-dlp` ever stops working — corrupt download, antivirus quarantine, an upstream site change that needs the latest yt-dlp — open **Settings → Self-heal** and click **Repair runtime**. Fetchwave downloads a fresh `yt-dlp` from the official GitHub release into your user data folder (`runtime/bin/<os>/<arch>/`) and re-runs diagnostics. The repair layer is checked first by the runtime resolver, so the freshly downloaded binary takes precedence over the one in the app bundle without modifying the (potentially read-only) app package.
-
-### Logs
-
-Fetchwave writes a rolling log via `electron-log`:
-
-| Platform | Path |
-| --- | --- |
-| macOS | `~/Library/Logs/Fetchwave/main.log` |
-| Windows | `%USERPROFILE%\AppData\Roaming\Fetchwave\logs\main.log` |
-| Linux | `~/.config/Fetchwave/logs/main.log` |
-
-Click **Settings → Logs → Export logs** to save a snapshot to disk for support.
-
-### First-launch experience
-
-The first time Fetchwave runs, you see a welcome screen that verifies the bundled runtime, offers a one-click repair if anything's off, and drops you into the Home screen. The flag is stored in settings (`firstLaunchCompleted`) so it never appears again — unless you reset settings.
-
-## Troubleshooting
-
-| Symptom | Fix |
-| --- | --- |
-| "Bundled runtime issue" toast on launch | Open Settings → Self-heal → Repair runtime |
-| Downloads fail with "format not available" on a site that worked yesterday | Run Repair runtime to pick up the latest yt-dlp |
-| Updates never download | Check Settings → Updates status; check the log file (`Export logs`) for `[updater]` entries |
-| App crashes to a fallback screen | Click **Reload window**; if it persists, click **Export logs** and file an issue |
-| Antivirus flagged `yt-dlp.exe` | Common false positive on Windows; whitelist Fetchwave's install folder or run Repair runtime to fetch a fresh binary into your user data folder |
-| Custom yt-dlp/ffmpeg path | Settings → Advanced binary overrides — set an absolute path, or click "Reset all to bundled" to revert |
-
-## Project status
-
-**Release candidate** — `1.0.0-rc.1`
-
-The core experience is complete. We're hardening packaging, shipping icons, and collecting feedback before tagging `1.0.0`.
-
-## Roadmap
-
-- Code signing + notarization for macOS and Windows
-- In-app yt-dlp auto-update
-- System tray + global hotkey
-- Per-job log drawer
-- Light theme
-- Localization
-
-## Known limitations
-
-- yt-dlp has no native pause; "pause" cancels the process and "resume" re-runs with `--continue`
-- Code signing/notarization not configured out of the box
-- Light theme is a placeholder — dark only for now
-- Tests are not yet wired into CI
-
-## Attribution
-
-Fetchwave is built on top of these excellent open-source projects:
-
-- [**yt-dlp**](https://github.com/yt-dlp/yt-dlp) — the engine that makes downloading possible. Fetchwave is not affiliated with the yt-dlp project.
-- [**FFmpeg**](https://ffmpeg.org) — used to mux audio and video streams.
+---
 
 ## Support
 
-- **Bugs / feature requests:** [github.com/fetchwave/fetchwave/issues](https://github.com/fetchwave/fetchwave/issues)
-- **Docs:** see this README and the in-app Settings → Support section
+Something not working? Found a bug? Have an idea?
+
+**[Open an issue on GitHub →](https://github.com/quanb24/fetchwave/issues)**
+
+For technical issues, Fetchwave keeps a detailed log of everything that happens. Open **Settings → Logs → Export logs** and attach the file to your issue — that gives us everything we need to help you.
+
+---
+
+## For developers
+
+If you want to build Fetchwave from source or contribute, here's the quick start.
+
+### Requirements
+- Node.js 20 or newer
+- macOS, Windows, or Linux
+
+### Setup
+```bash
+git clone https://github.com/quanb24/fetchwave.git
+cd fetchwave
+npm install
+./scripts/fetch-binaries.sh        # macOS / Linux
+.\scripts\fetch-binaries.ps1       # Windows PowerShell
+npm run dev
+```
+
+### Build & release
+```bash
+npm run build              # type-check + build everything
+npm run package:mac        # build a macOS .dmg locally
+npm run package:win        # build a Windows .exe locally (must run on Windows)
+
+npm run release:patch      # 1.0.0 → 1.0.1, push tag, CI ships installers
+npm run release:rc         # cut a release candidate (rc channel)
+```
+
+Pushing a `vX.Y.Z` tag automatically triggers GitHub Actions, which builds Mac and Windows installers in parallel and publishes them to the [Releases](https://github.com/quanb24/fetchwave/releases) page.
+
+### Architecture
+```
+electron/   Main process — window, IPC, queue, yt-dlp orchestration
+src/        Renderer — React + TypeScript UI
+resources/  Bundled binaries (yt-dlp, ffmpeg, ffprobe) per platform
+assets/     Icons and screenshots
+```
+
+Built with **Electron**, **React**, **TypeScript**, **Vite**, **Tailwind**, and **Zustand**.
+
+---
+
+## Credits
+
+Fetchwave is a polished interface around two extraordinary open-source projects:
+
+- **[yt-dlp](https://github.com/yt-dlp/yt-dlp)** — the engine that makes downloading possible. Fetchwave bundles and orchestrates yt-dlp; we are not affiliated with the yt-dlp project.
+- **[FFmpeg](https://ffmpeg.org)** — used to merge video and audio streams into clean output files.
+
+Huge thanks to the maintainers of both. Without them, Fetchwave would not exist.
+
+---
 
 ## License
 
 MIT — see [LICENSE](./LICENSE).
+
+The bundled `yt-dlp` and `ffmpeg` binaries retain their original licenses (Unlicense and LGPL/GPL respectively).
+
+---
+
+<div align="center">
+
+## ✨ One last thing
+
+Fetchwave is meant to feel **simple and safe**. If you ever feel lost or stuck, the answer is almost always **Settings → Self-heal → Repair runtime**. That single button fixes most things.
+
+If Fetchwave makes your life a little easier, **[give it a star on GitHub ⭐](https://github.com/quanb24/fetchwave)** — it genuinely helps the project grow.
+
+**[⬇ Download Fetchwave](https://github.com/quanb24/fetchwave/releases/latest)** · **[Report an issue](https://github.com/quanb24/fetchwave/issues)** · **[Star on GitHub](https://github.com/quanb24/fetchwave)**
+
+</div>
