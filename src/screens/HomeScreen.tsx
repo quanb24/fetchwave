@@ -27,6 +27,7 @@ export const HomeScreen: React.FC = () => {
   const settings = useSettingsStore((s) => s.settings);
   const update = useSettingsStore((s) => s.update);
   const history = useHistoryStore((s) => s.entries).slice(0, 4);
+  const removeFromHistory = useHistoryStore((s) => s.remove);
   const toast = useToast();
 
   useEffect(() => { inputRef.current?.focus(); }, []);
@@ -172,14 +173,22 @@ export const HomeScreen: React.FC = () => {
           <SectionHeader title="Recent downloads" description="Your last few completed files" />
           <div className="space-y-2">
             {history.map((e) => (
-              <Card key={e.id} className="!rounded-xl">
+              <Card key={e.id} className="!rounded-xl group">
                 <CardBody className="!py-3 !px-4 flex items-center gap-3">
-                  <div className="h-8 w-8 rounded-lg bg-success/10 border border-success/20 flex items-center justify-center text-success text-xs">✓</div>
+                  <div className="h-8 w-8 rounded-lg bg-success/10 border border-success/20 flex items-center justify-center text-success text-xs shrink-0">✓</div>
                   <div className="flex-1 min-w-0">
                     <div className="text-sm text-fg truncate">{e.title}</div>
                     <div className="text-xs text-fg-dim truncate">{e.outputFile}</div>
                   </div>
-                  <div className="text-[11px] text-fg-muted">{new Date(e.finishedAt).toLocaleDateString()}</div>
+                  <div className="text-[11px] text-fg-muted shrink-0">{new Date(e.finishedAt).toLocaleDateString()}</div>
+                  <button
+                    onClick={() => removeFromHistory(e.id)}
+                    aria-label="Remove from recent downloads"
+                    title="Remove from recent downloads"
+                    className="h-7 w-7 rounded-md flex items-center justify-center text-fg-dim hover:text-danger hover:bg-danger/10 transition opacity-0 group-hover:opacity-100 shrink-0"
+                  >
+                    ×
+                  </button>
                 </CardBody>
               </Card>
             ))}
@@ -188,8 +197,30 @@ export const HomeScreen: React.FC = () => {
       )}
 
       {/* Footer status */}
-      <div className="mt-10 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-fg-dim">
-        <span>Saving to <span className="text-fg-muted">{settings?.downloadPath ?? '…'}</span></span>
+      <div className="mt-10 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-fg-dim items-center">
+        <span className="flex items-center gap-1.5">
+          Saving to
+          <button
+            onClick={async () => {
+              const r = await window.api.system.pickFolder();
+              if (r.ok && r.data) {
+                await update({ downloadPath: r.data });
+                toast.success('Download folder updated', r.data);
+              }
+            }}
+            title="Click to change the download folder"
+            className="text-fg-muted hover:text-accent underline decoration-dotted underline-offset-2 transition truncate max-w-[260px] text-left"
+          >
+            {settings?.downloadPath ?? '…'}
+          </button>
+          <button
+            onClick={() => settings?.downloadPath && window.api.system.revealFile(settings.downloadPath)}
+            title="Open this folder in Finder"
+            className="text-fg-dim hover:text-fg transition"
+          >
+            ↗
+          </button>
+        </span>
         <span>·</span>
         <span>Concurrency <span className="text-fg-muted">{settings?.concurrency}</span></span>
         <span>·</span>

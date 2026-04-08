@@ -5,6 +5,7 @@ import type { DownloadJob } from '../../electron/domain/job';
 interface HistoryState {
   entries: HistoryEntry[];
   recordIfCompleted: (j: DownloadJob) => void;
+  remove: (id: string) => void;
   clear: () => void;
 }
 
@@ -36,6 +37,11 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
       bytes: j.progress.totalBytes,
     };
     const next = [entry, ...get().entries];
+    save(next);
+    set({ entries: next });
+  },
+  remove(id) {
+    const next = get().entries.filter((e) => e.id !== id);
     save(next);
     set({ entries: next });
   },
