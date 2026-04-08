@@ -60,6 +60,9 @@ export interface AddJobRequest {
   outputDir?: string;
   priority?: JobPriority;
   title?: string | null;
+  /** When true, force ffmpeg to extract/convert to MP3 even though the
+   *  format selector points at a raw audio stream. */
+  audioOnly?: boolean;
 }
 
 export type IpcResult<T> = { ok: true; data: T } | { ok: false; error: AppErrorJSON };

@@ -153,9 +153,10 @@ export function startDownload(
   cbs: DownloadCallbacks,
   formatOverride?: string,
   playlistIndex: number | null = null,
+  audioOnly = false,
 ): DownloadHandle {
   validateUrl(url);
-  const args = buildDownloadArgs({ url, outputDir, settings, formatOverride, resume: true, playlistIndex });
+  const args = buildDownloadArgs({ url, outputDir, settings, formatOverride, resume: true, playlistIndex, audioOnly });
   const ytdlpBin = resolveBinary('yt-dlp', settings.ytdlpPath);
   ensureExecutable(ytdlpBin);
   // Dump the full command line so any future argument bug is one log line away.

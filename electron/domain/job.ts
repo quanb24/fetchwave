@@ -39,6 +39,7 @@ export interface DownloadJob {
   attempts: number;
   maxAttempts: number;
   nextRetryAt: number | null;
+  audioOnly: boolean;
   isPlaylistParent: boolean;
   playlistIndex: number | null;
   playlistCount: number | null;

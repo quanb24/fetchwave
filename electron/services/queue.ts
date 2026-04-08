@@ -17,6 +17,7 @@ export interface AddInput {
   outputDir?: string;
   priority?: JobPriority;
   title?: string | null;
+  audioOnly?: boolean;
   parentId?: string | null;
   playlistIndex?: number | null;
   playlistCount?: number | null;
@@ -149,6 +150,7 @@ export class DownloadQueue extends EventEmitter {
       attempts: 0,
       maxAttempts: settings.maxRetries + 1,
       nextRetryAt: null,
+      audioOnly: input.audioOnly ?? false,
       isPlaylistParent: false,
       playlistIndex: input.playlistIndex ?? null,
       playlistCount: input.playlistCount ?? null,
@@ -325,6 +327,7 @@ export class DownloadQueue extends EventEmitter {
         },
         job.formatSelector || undefined,
         job.playlistIndex,
+        job.audioOnly,
       );
     } catch (e) {
       const err = AppError.from(e);

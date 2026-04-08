@@ -78,10 +78,10 @@ export const HomeScreen: React.FC = () => {
     setUrl('');
   };
 
-  const handleConfirmFormat = async (formatSelector: string) => {
+  const handleConfirmFormat = async (formatSelector: string, audioOnly: boolean) => {
     if (!info) return;
     setBusy('adding');
-    const r = await window.api.queue.add({ url: info.url, formatSelector, title: info.title });
+    const r = await window.api.queue.add({ url: info.url, formatSelector, title: info.title, audioOnly });
     setBusy('idle');
     if (!r.ok) { toast.error('Could not add', r.error.message); return; }
     toast.success('Added to queue', info.title);

@@ -33,6 +33,8 @@ export interface BuildArgsInput {
   formatOverride?: string;
   resume?: boolean;
   playlistIndex?: number | null;
+  /** Force MP3 extraction even when a format override is provided. */
+  audioOnly?: boolean;
 }
 
 export function buildDownloadArgs({
@@ -42,6 +44,7 @@ export function buildDownloadArgs({
   formatOverride,
   resume = true,
   playlistIndex = null,
+  audioOnly: audioOnlyFlag = false,
 }: BuildArgsInput): string[] {
   const args: string[] = [];
 
@@ -50,12 +53,11 @@ export function buildDownloadArgs({
     ? formatOverride!
     : qualityToFormat(settings.qualityDefault, settings.preferredContainer);
   args.push('-f', fmt);
-  // When the caller provided an explicit format (Format Modal, playlist child,
-  // etc.) that selector IS the source of truth. The "audio-only" setting and
-  // merge-container logic below only apply when we derived the format from the
-  // default quality preset.
-  const isAudioOnly = !hasFormatOverride && settings.qualityDefault === 'audio-only';
-  const isVideoDownload = hasFormatOverride || settings.qualityDefault !== 'audio-only';
+  // Audio-only is true if EITHER the caller explicitly set the audioOnly
+  // flag (e.g. Format Modal "Audio only" toggle) OR we derived the format
+  // from the audio-only quality preset.
+  const isAudioOnly = audioOnlyFlag || (!hasFormatOverride && settings.qualityDefault === 'audio-only');
+  const isVideoDownload = !isAudioOnly;
 
   // Output template — stable across runs so resume finds its .part
   args.push('-o', `${outputDir}/%(title).200B [%(id)s].%(ext)s`);

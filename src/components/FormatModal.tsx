@@ -9,7 +9,7 @@ interface Props {
   info: MediaInfo | null;       // null while analyze is in flight
   loading?: boolean;
   onClose: () => void;
-  onConfirm: (formatSelector: string) => void;
+  onConfirm: (formatSelector: string, audioOnly: boolean) => void;
 }
 
 function fmtSize(b: number | null): string {
@@ -73,7 +73,10 @@ export const FormatModal: React.FC<Props> = ({ info, loading, onClose, onConfirm
     let selector: string;
     if (audioOnly) {
       selector = 'bestaudio/best';
-    } else if (height) {
+      onConfirm(selector, true);
+      return;
+    }
+    if (height) {
       // Prefer the actual requested resolution at ANY codec — YouTube only
       // ships H.264/mp4 up to 1080p, so 2160p/1440p must come from VP9/AV1
       // (webm). The container choice is honoured at remux time via
@@ -85,7 +88,7 @@ export const FormatModal: React.FC<Props> = ({ info, loading, onClose, onConfirm
     } else {
       selector = 'bv*+ba/b';
     }
-    onConfirm(selector);
+    onConfirm(selector, false);
   };
 
   const footer = (

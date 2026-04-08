@@ -1,7 +1,7 @@
 {
   "name": "fetchwave",
   "productName": "Fetchwave",
-  "version": "1.0.0-rc.2",
+  "version": "1.0.0-rc.3",
   "description": "A premium desktop downloader for the open web. Fast, modern, and built on yt-dlp.",
   "author": {
     "name": "Fetchwave",
@@ -139,12 +139,14 @@
       "oneClick": false,
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
+      "createDesktopShortcut": "always",
       "createStartMenuShortcut": true,
       "shortcutName": "Fetchwave",
       "uninstallDisplayName": "Fetchwave",
       "deleteAppDataOnUninstall": false,
-      "differentialPackage": true
+      "differentialPackage": true,
+      "menuCategory": false,
+      "runAfterFinish": true
     },
     "linux": {
       "category": "Network",
