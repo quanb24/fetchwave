@@ -1,4 +1,6 @@
 import { ipcMain, BrowserWindow, dialog, clipboard, app, shell } from 'electron';
+import { spawn } from 'node:child_process';
+import fs from 'node:fs';
 import path from 'node:path';
 import { IPC } from '../ipc/channels';
 import { DownloadQueue } from '../services/queue';
@@ -111,11 +113,28 @@ export function registerIpc(getWindow: () => BrowserWindow | null): DownloadQueu
 
   ipcMain.handle(IPC.systemRestart, async () => {
     logger.info('[ipc] system:restart requested');
-    app.relaunch({ execPath: process.execPath, args: process.argv.slice(1) });
-    // quit() instead of exit(0) — gives before-quit handlers time to clean up
-    // and avoids a race on Windows where exit(0) fires before the relaunch
-    // child process is fully spawned.
-    app.quit();
+
+    if (process.platform === 'win32') {
+      // On Windows the app can end up running from a temp directory (NSIS
+      // "Run after install" or electron-updater extraction).  app.relaunch()
+      // inherits process.execPath which points into that temp dir — and
+      // Windows can clean it up before the new process starts, so the exe
+      // vanishes.  Instead we find the real installed path and spawn it as
+      // an independent process that survives our exit.
+      const localAppData = process.env.LOCALAPPDATA ?? '';
+      const installedExe = path.join(localAppData, 'Programs', 'Fetchwave', 'Fetchwave.exe');
+      const exePath = (localAppData && fs.existsSync(installedExe))
+        ? installedExe
+        : process.execPath;  // fallback if not found (dev mode, portable, etc.)
+      logger.info(`[ipc] restart: spawning ${exePath}`);
+      spawn(exePath, { detached: true, stdio: 'ignore' }).unref();
+      app.exit(0);
+    } else {
+      // macOS / Linux — app.relaunch() works reliably (no temp-dir issue).
+      app.relaunch();
+      app.exit(0);
+    }
+
     return ok(undefined);
   });
 
