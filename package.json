@@ -144,7 +144,7 @@
       "shortcutName": "Fetchwave",
       "uninstallDisplayName": "Fetchwave",
       "deleteAppDataOnUninstall": false,
-      "differentialPackage": true,
+      "differentialPackage": false,
       "menuCategory": false,
       "runAfterFinish": true
     },
