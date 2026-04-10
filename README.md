@@ -2,7 +2,7 @@
 
 <br>
 
-<img src="https://img.shields.io/badge/Fetchwave-1.0.0--rc.1-6e8bff?style=for-the-badge&labelColor=0b0d12" alt="Fetchwave"/>
+<img src="https://img.shields.io/badge/Fetchwave-1.1.0-6e8bff?style=for-the-badge&labelColor=0b0d12" alt="Fetchwave"/>
 
 # 🌊 Fetchwave
 
@@ -189,6 +189,16 @@ Fetchwave checks for new versions a few seconds after launch and downloads them 
 You can also check manually anytime in **Settings → Updates**.
 
 <br>
+
+---
+
+## 📖 Documentation
+
+| Guide | What's inside |
+|-------|--------------|
+| **[Installation](docs/installation.md)** | Download, install, first launch, updates, uninstall |
+| **[User Guide](docs/user-guide.md)** | How to download, format selection, queue, settings reference, keyboard shortcuts |
+| **[Troubleshooting & FAQ](docs/troubleshooting.md)** | Common issues, error fixes, frequently asked questions |
 
 ---
 
