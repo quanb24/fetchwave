@@ -10,29 +10,68 @@ import { Card, CardBody } from '../components/ui/Card';
 import { Toggle } from '../components/ui/Toggle';
 import { Badge } from '../components/ui/Badge';
 import { PRODUCT } from '../config/product';
+import {
+  Download, Subtitles, RefreshCw, Shield, Globe, Palette, Wrench,
+  FileText, Info, ExternalLink, Code, Bug, BookOpen, HardDrive,
+  RotateCcw, Upload, Activity, Zap,
+} from 'lucide-react';
 import type { AppSettings, CollisionStrategy, Container, QualityPreset, Theme } from '../../electron/domain/settings';
 import type { BinaryStatus } from '../../electron/services/diagnostics';
 
-const Group: React.FC<{ title: string; description?: string; children: React.ReactNode }> = ({ title, description, children }) => (
+/* ─── Local primitives ─── */
+
+const Group: React.FC<{
+  title: string;
+  description?: string;
+  icon?: React.ReactNode;
+  children: React.ReactNode;
+}> = ({ title, description, icon, children }) => (
   <Card>
-    <div className="px-6 py-5 border-b border-bg-border">
-      <h2 className="text-sm font-semibold text-fg">{title}</h2>
-      {description && <p className="text-xs text-fg-muted mt-1">{description}</p>}
+    <div className="px-6 py-4 border-b border-bg-border flex items-center gap-3">
+      {icon && <span className="text-fg-dim shrink-0">{icon}</span>}
+      <div>
+        <h2 className="text-[13px] font-semibold text-fg tracking-tight">{title}</h2>
+        {description && <p className="text-[11px] text-fg-muted mt-0.5 leading-snug">{description}</p>}
+      </div>
     </div>
     <CardBody className="!p-0 divide-y divide-bg-border">{children}</CardBody>
   </Card>
 );
 
-const Row: React.FC<{ label: string; description?: string; children: React.ReactNode; stacked?: boolean }> = ({
-  label, description, children, stacked,
-}) => (
-  <div className={`px-6 py-4 ${stacked ? 'space-y-3' : 'flex items-center gap-6'}`}>
+const Row: React.FC<{
+  label: string;
+  description?: string;
+  children: React.ReactNode;
+  stacked?: boolean;
+}> = ({ label, description, children, stacked }) => (
+  <div className={`px-6 py-3.5 ${stacked ? 'space-y-2.5' : 'flex items-center gap-6'} transition-colors duration-150 hover:bg-bg-elevated/40`}>
     <div className={stacked ? '' : 'flex-1 min-w-0'}>
-      <div className="text-sm text-fg">{label}</div>
-      {description && <div className="text-xs text-fg-muted mt-0.5 leading-snug">{description}</div>}
+      <div className="text-[13px] font-medium text-fg">{label}</div>
+      {description && <div className="text-[11px] text-fg-muted mt-0.5 leading-snug">{description}</div>}
     </div>
     <div className={stacked ? '' : 'w-64 shrink-0'}>{children}</div>
   </div>
+);
+
+const ResourceRow: React.FC<{
+  icon: React.ReactNode;
+  label: string;
+  description: string;
+  url: string;
+}> = ({ icon, label, description, url }) => (
+  <button
+    onClick={() => window.open(url)}
+    className="w-full px-6 py-4 flex items-center gap-4 transition-colors hover:bg-bg-soft/40 group text-left"
+  >
+    <span className="h-9 w-9 rounded-xl bg-bg-elevated border border-bg-border flex items-center justify-center text-fg-dim group-hover:text-accent group-hover:border-accent/30 transition-colors shrink-0">
+      {icon}
+    </span>
+    <div className="flex-1 min-w-0">
+      <div className="text-sm text-fg group-hover:text-accent transition-colors">{label}</div>
+      <div className="text-xs text-fg-muted mt-0.5">{description}</div>
+    </div>
+    <ExternalLink size={14} className="text-fg-faint group-hover:text-fg-dim transition-colors shrink-0" />
+  </button>
 );
 
 const statusBadge = (s: BinaryStatus) => {
@@ -43,6 +82,8 @@ const statusBadge = (s: BinaryStatus) => {
     case 'version_failed': return <Badge tone="danger" dot>Failed</Badge>;
   }
 };
+
+/* ─── Main component ─── */
 
 export const SettingsScreen: React.FC = () => {
   const persisted = useSettingsStore((s) => s.settings);
@@ -55,17 +96,12 @@ export const SettingsScreen: React.FC = () => {
   const installUpdate = useUpdaterStore((s) => s.install);
   const toast = useToast();
 
-  // Local draft. Mutations from the UI write here; nothing reaches the
-  // persistent store until "Save changes" is clicked.
   const [draft, setDraft] = useState<AppSettings | null>(persisted);
-  // Re-sync draft when persisted changes from outside (initial load, save).
   useEffect(() => { setDraft(persisted); }, [persisted]);
 
   const settings = draft;
   const isDirty = !!persisted && !!draft && JSON.stringify(persisted) !== JSON.stringify(draft);
 
-  // Mirror the dirty flag into the UI store so the sidebar can warn before
-  // navigating away. Also clear it on unmount so other screens see a clean state.
   const setSettingsDirty = useUiStore((s) => s.setSettingsDirty);
   useEffect(() => {
     setSettingsDirty(isDirty);
@@ -76,7 +112,6 @@ export const SettingsScreen: React.FC = () => {
     setDraft((d) => (d ? { ...d, ...patch } : d));
   };
 
-  // Runtime version from app.getVersion(), updated after auto-update installs.
   const [runtimeVersion, setRuntimeVersion] = useState<string>(PRODUCT.version);
   useEffect(() => {
     void window.api.system.getVersion().then((r) => { if (r.ok) setRuntimeVersion(r.data); });
@@ -152,10 +187,10 @@ export const SettingsScreen: React.FC = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto w-full px-8 py-8 space-y-6 animate-fade-in">
-      {/* Sticky save bar — only visible when there are unsaved changes */}
+    <div className="max-w-3xl mx-auto w-full px-8 py-10 space-y-8 animate-fade-in">
+      {/* Sticky save bar */}
       {isDirty && (
-        <div className="sticky top-0 z-10 -mx-2 px-4 py-3 rounded-xl border border-accent/40 bg-accent-soft backdrop-blur-md flex items-center justify-between animate-fade-in shadow-elevated">
+        <div className="sticky top-0 z-10 -mx-2 px-4 py-3 rounded-xl border border-accent/40 bg-bg-card flex items-center justify-between animate-fade-in shadow-elevated">
           <div className="flex items-center gap-2 text-sm">
             <span className="h-2 w-2 rounded-full bg-accent animate-pulse" />
             <span className="text-fg">Unsaved changes</span>
@@ -167,7 +202,7 @@ export const SettingsScreen: React.FC = () => {
         </div>
       )}
 
-      <Group title="Downloads" description="Where and how files are saved.">
+      <Group title="Downloads" description="Where and how files are saved." icon={<Download size={16} />}>
         <Row label="Download folder" description="Destination for all completed files" stacked>
           <div className="flex gap-2">
             <Input value={settings.downloadPath} onChange={(e) => set('downloadPath', e.target.value)} />
@@ -184,9 +219,6 @@ export const SettingsScreen: React.FC = () => {
             value={settings.qualityDefault}
             onChange={(e) => {
               const q = e.target.value as QualityPreset;
-              // Keep container and quality consistent. Audio-only ⇒ mp3,
-              // anything else ⇒ mp4 (unless the user already has a video
-              // container selected).
               const audioish = ['mp3','m4a','opus','aac','flac','wav'];
               if (q === 'audio-only') {
                 update({ qualityDefault: q, preferredContainer: 'mp3' });
@@ -221,7 +253,7 @@ export const SettingsScreen: React.FC = () => {
         </Row>
       </Group>
 
-      <Group title="Subtitles" description="Subtitle download and embedding.">
+      <Group title="Subtitles" description="Subtitle download and embedding." icon={<Subtitles size={16} />}>
         <Row label="Download subtitle files" description="Save .vtt/.srt files next to the video">
           <Toggle checked={settings.writeSubtitles} onChange={(v) => set('writeSubtitles', v)} />
         </Row>
@@ -236,7 +268,7 @@ export const SettingsScreen: React.FC = () => {
         </Row>
       </Group>
 
-      <Group title="Retries" description="How failed downloads are retried automatically.">
+      <Group title="Retries" description="How failed downloads are retried automatically." icon={<RefreshCw size={16} />}>
         <Row label="Max retries per job" description="Attempts before marking a job as failed">
           <Input type="number" min={0} max={10} value={settings.maxRetries}
             onChange={(e) => set('maxRetries', Math.max(0, Math.min(10, Number(e.target.value) || 0)))} />
@@ -247,7 +279,7 @@ export const SettingsScreen: React.FC = () => {
         </Row>
       </Group>
 
-      <Group title="Network" description="Proxy and authentication.">
+      <Group title="Network" description="Proxy and authentication." icon={<Globe size={16} />}>
         <Row label="Proxy URL" description="HTTP/SOCKS proxy (e.g. http://host:port)" stacked>
           <Input value={settings.proxy ?? ''} placeholder="http://host:port" onChange={(e) => set('proxy', e.target.value || null)} />
         </Row>
@@ -259,10 +291,9 @@ export const SettingsScreen: React.FC = () => {
         </Row>
       </Group>
 
-      {/* Runtime Status — bundled binaries health */}
-      <Group title="Runtime status" description="Fetchwave bundles its own copies of yt-dlp and ffmpeg. You don't need to install them separately.">
+      <Group title="Runtime status" description="Fetchwave bundles its own copies of yt-dlp and ffmpeg." icon={<Activity size={16} />}>
         {diag?.binaries.map((b) => (
-          <div key={b.name} className="px-6 py-4">
+          <div key={b.name} className="px-6 py-4 transition-colors hover:bg-bg-soft/40">
             <div className="flex items-center gap-3">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
@@ -292,7 +323,7 @@ export const SettingsScreen: React.FC = () => {
         </div>
       </Group>
 
-      <Group title="Advanced binary overrides" description="Leave as 'bundled' to use the binaries shipped with Fetchwave. Only change these if you know what you're doing.">
+      <Group title="Advanced binary overrides" description="Leave as 'bundled' to use the binaries shipped with Fetchwave." icon={<HardDrive size={16} />}>
         <Row label="yt-dlp executable" description="Use 'bundled' or an absolute path to a custom yt-dlp" stacked>
           <Input value={settings.ytdlpPath} placeholder="bundled" onChange={(e) => set('ytdlpPath', e.target.value)} />
         </Row>
@@ -314,12 +345,12 @@ export const SettingsScreen: React.FC = () => {
               toast.success('Reset to bundled');
             }}
           >
-            Reset all to bundled
+            <RotateCcw size={13} /> Reset all to bundled
           </Button>
         </div>
       </Group>
 
-      <Group title="Appearance" description="Visual preferences.">
+      <Group title="Appearance" description="Visual preferences." icon={<Palette size={16} />}>
         <Row label="Theme" description="Application color scheme">
           <Select value={settings.theme} onChange={(e) => set('theme', e.target.value as Theme)}>
             <option value="dark">Dark</option>
@@ -333,26 +364,54 @@ export const SettingsScreen: React.FC = () => {
       </Group>
 
       {/* Updates */}
-      <Group title="Updates" description="Fetchwave can update itself in the background.">
+      <Group title="Updates" description="Fetchwave can update itself in the background." icon={<Zap size={16} />}>
         <Row label="Check for updates automatically" description="Run a check shortly after every launch">
           <Toggle checked={settings.autoCheckForUpdates} onChange={(v) => set('autoCheckForUpdates', v)} />
         </Row>
-        <Row label="Status" description={updateLabel}>
-          <div className="flex gap-2 justify-end">
-            {updateState.phase === 'ready' ? (
-              <Button size="sm" onClick={() => installUpdate()}>Restart & install</Button>
-            ) : (
-              <Button size="sm" variant="secondary" onClick={handleCheckUpdates}
-                loading={updateState.phase === 'checking' || updateState.phase === 'downloading'}>
-                Check now
-              </Button>
-            )}
+        <div className="px-6 py-4">
+          <div className="flex items-center gap-4">
+            {/* Status indicator */}
+            <div className={`h-9 w-9 rounded-xl border flex items-center justify-center shrink-0 transition-colors duration-200 ${
+              updateState.phase === 'ready'
+                ? 'bg-success/10 border-success/30 text-success'
+                : updateState.phase === 'error'
+                  ? 'bg-danger/10 border-danger/30 text-danger'
+                  : updateState.phase === 'checking' || updateState.phase === 'downloading'
+                    ? 'bg-accent-soft border-accent/30 text-accent'
+                    : 'bg-bg-elevated border-bg-border text-fg-dim'
+            }`}>
+              <Zap size={16} className={updateState.phase === 'checking' ? 'animate-pulse' : ''} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="text-[13px] font-medium text-fg">v{runtimeVersion}</span>
+                <Badge tone={PRODUCT.channel === 'stable' ? 'success' : 'accent'}>{PRODUCT.channel}</Badge>
+              </div>
+              <div className={`text-[11px] mt-0.5 ${
+                updateState.phase === 'ready' ? 'text-success' :
+                updateState.phase === 'error' ? 'text-danger' : 'text-fg-muted'
+              }`}>
+                {updateLabel}
+              </div>
+            </div>
+            <div className="shrink-0">
+              {updateState.phase === 'ready' ? (
+                <Button size="sm" onClick={() => installUpdate()}>
+                  <Zap size={13} /> Restart & install
+                </Button>
+              ) : (
+                <Button size="sm" variant="secondary" onClick={handleCheckUpdates}
+                  loading={updateState.phase === 'checking' || updateState.phase === 'downloading'}>
+                  Check now
+                </Button>
+              )}
+            </div>
           </div>
-        </Row>
+        </div>
       </Group>
 
       {/* Self-heal */}
-      <Group title="Self-heal" description="If yt-dlp stops working, Fetchwave can re-download a fresh copy into your user folder.">
+      <Group title="Self-heal" description="If yt-dlp stops working, Fetchwave can re-download a fresh copy." icon={<Wrench size={16} />}>
         <div className="px-6 py-4 space-y-3">
           <div className="flex items-center justify-between">
             <div>
@@ -360,13 +419,13 @@ export const SettingsScreen: React.FC = () => {
               <div className="text-xs text-fg-muted mt-0.5">Re-downloads yt-dlp and re-runs diagnostics.</div>
             </div>
             <Button variant="secondary" onClick={handleRepair} loading={repairing}>
-              Repair runtime
+              <Wrench size={13} /> Repair
             </Button>
           </div>
           <div className="flex items-center justify-between">
             <div>
               <div className="text-sm text-fg">Reset to bundled</div>
-              <div className="text-xs text-fg-muted mt-0.5">Wipes any repaired copy and forces Fetchwave to use the binaries shipped inside the app.</div>
+              <div className="text-xs text-fg-muted mt-0.5">Wipes any repaired copy and forces bundled binaries.</div>
             </div>
             <Button
               variant="ghost"
@@ -380,7 +439,7 @@ export const SettingsScreen: React.FC = () => {
                 }
               }}
             >
-              Reset to bundled
+              <RotateCcw size={13} /> Reset
             </Button>
           </div>
           {repairMsg && (
@@ -392,20 +451,22 @@ export const SettingsScreen: React.FC = () => {
       </Group>
 
       {/* Logs */}
-      <Group title="Logs" description="Fetchwave keeps a rolling, verbose log of every download, error, IPC call, and diagnostic check.">
-        <div className="px-6 py-4 flex items-center justify-between">
+      <Group title="Logs" description="Verbose log of every download, error, and diagnostic check." icon={<FileText size={16} />}>
+        <div className="px-6 py-4 flex items-center justify-between transition-colors hover:bg-bg-soft/40">
           <div>
             <div className="text-sm text-fg">Reveal log file</div>
             <div className="text-xs text-fg-muted mt-0.5">Open the log folder in Finder / File Explorer.</div>
           </div>
-          <Button variant="secondary" onClick={() => window.api.logs.reveal()}>Reveal in folder</Button>
+          <Button variant="secondary" onClick={() => window.api.logs.reveal()}>Reveal</Button>
         </div>
-        <div className="px-6 py-4 flex items-center justify-between">
+        <div className="px-6 py-4 flex items-center justify-between transition-colors hover:bg-bg-soft/40">
           <div>
             <div className="text-sm text-fg">Export application log</div>
             <div className="text-xs text-fg-muted mt-0.5">Save a snapshot for support or debugging.</div>
           </div>
-          <Button variant="secondary" onClick={handleExportLogs}>Export logs</Button>
+          <Button variant="secondary" onClick={handleExportLogs}>
+            <Upload size={13} /> Export
+          </Button>
         </div>
       </Group>
 
@@ -431,36 +492,40 @@ export const SettingsScreen: React.FC = () => {
       </Card>
 
       {/* Support & Resources */}
-      <Group title="Support & Resources" description="Documentation, issues, and project links.">
-        <Row label="Website" description="Product home and downloads">
-          <Button size="sm" variant="secondary" onClick={() => window.open(PRODUCT.links.website)}>
-            Open
-          </Button>
-        </Row>
-        <Row label="Documentation" description="Setup, usage, and troubleshooting">
-          <Button size="sm" variant="secondary" onClick={() => window.open(PRODUCT.links.docs)}>
-            Open
-          </Button>
-        </Row>
-        <Row label="Source code" description="GitHub repository">
-          <Button size="sm" variant="secondary" onClick={() => window.open(PRODUCT.links.repo)}>
-            Open
-          </Button>
-        </Row>
-        <Row label="Report an issue" description="File a bug or request a feature">
-          <Button size="sm" variant="secondary" onClick={() => window.open(PRODUCT.links.issues)}>
-            Open
-          </Button>
-        </Row>
+      <Group title="Support & Resources" description="Documentation, issues, and project links." icon={<Shield size={16} />}>
+        <ResourceRow
+          icon={<Globe size={16} />}
+          label="Website"
+          description="Product home and downloads"
+          url={PRODUCT.links.website}
+        />
+        <ResourceRow
+          icon={<BookOpen size={16} />}
+          label="Documentation"
+          description="Setup, usage, and troubleshooting"
+          url={PRODUCT.links.docs}
+        />
+        <ResourceRow
+          icon={<Code size={16} />}
+          label="Source code"
+          description="GitHub repository"
+          url={PRODUCT.links.repo}
+        />
+        <ResourceRow
+          icon={<Bug size={16} />}
+          label="Report an issue"
+          description="File a bug or request a feature"
+          url={PRODUCT.links.issues}
+        />
       </Group>
 
       {/* Attribution */}
-      <Group title="Acknowledgements" description="Open-source projects that power Fetchwave.">
+      <Group title="Acknowledgements" description="Open-source projects that power Fetchwave." icon={<Info size={16} />}>
         <Row label={PRODUCT.attribution.ytdlp.name} description={PRODUCT.attribution.ytdlp.note} stacked>
           <div className="flex items-center justify-between">
             <Badge tone="muted">{PRODUCT.attribution.ytdlp.license}</Badge>
             <Button size="sm" variant="ghost" onClick={() => window.open(PRODUCT.attribution.ytdlp.url)}>
-              Visit project
+              Visit project <ExternalLink size={12} />
             </Button>
           </div>
         </Row>
@@ -468,7 +533,7 @@ export const SettingsScreen: React.FC = () => {
           <div className="flex items-center justify-between">
             <Badge tone="muted">{PRODUCT.attribution.ffmpeg.license}</Badge>
             <Button size="sm" variant="ghost" onClick={() => window.open(PRODUCT.attribution.ffmpeg.url)}>
-              Visit project
+              Visit project <ExternalLink size={12} />
             </Button>
           </div>
         </Row>

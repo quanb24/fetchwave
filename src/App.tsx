@@ -158,7 +158,7 @@ const AppInner: React.FC = () => {
   const t = titles[screen];
 
   return (
-    <div className="flex h-full">
+    <div className="flex h-full bg-bg overflow-hidden isolate">
       <Sidebar
         current={screen}
         onChange={(next) => {

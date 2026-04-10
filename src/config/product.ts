@@ -7,8 +7,8 @@ export const PRODUCT = {
   tagline: 'A premium desktop downloader for the open web.',
   description:
     'Fetchwave turns the power of yt-dlp into a calm, beautiful desktop experience. Built for people who want professional-grade downloads — playlists, formats, retries, queues — without ever touching a terminal.',
-  version: '1.0.0-rc.4',
-  channel: 'release-candidate',
+  version: '1.0.0',
+  channel: 'stable',
   copyright: '© 2026 Fetchwave',
   links: {
     website: 'https://fetchwave.app',

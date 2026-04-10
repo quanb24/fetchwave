@@ -6,12 +6,13 @@ export default {
     extend: {
       colors: {
         bg: {
-          DEFAULT: '#0a0b0f',
-          soft: '#0f1117',
-          card: '#14161e',
-          elevated: '#181b24',
-          border: '#1f232e',
-          'border-strong': '#2a2f3c',
+          DEFAULT: '#090a0e',
+          soft: '#0e1016',
+          card: '#15171f',
+          elevated: '#1a1d27',
+          border: '#1e2230',
+          'border-strong': '#2b3040',
+          'border-inner': 'rgba(255,255,255,0.04)',
         },
         fg: {
           DEFAULT: '#e6e8ee',
@@ -34,9 +35,10 @@ export default {
         mono: ['SF Mono', 'JetBrains Mono', 'Menlo', 'monospace'],
       },
       boxShadow: {
-        card: '0 1px 2px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.03)',
-        elevated: '0 10px 40px -10px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04)',
+        card: '0 1px 3px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04)',
+        elevated: '0 8px 30px -8px rgba(0,0,0,0.7), 0 2px 6px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)',
         focus: '0 0 0 3px rgba(110,139,255,0.25)',
+        subtle: '0 1px 2px rgba(0,0,0,0.3)',
       },
       keyframes: {
         fadeIn: { from: { opacity: '0' }, to: { opacity: '1' } },

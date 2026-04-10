@@ -6,11 +6,12 @@ export const Input = React.forwardRef<HTMLInputElement, Props>(({ className = ''
   <input
     ref={ref}
     className={`
-      w-full bg-bg-soft border border-bg-border rounded-lg
+      w-full bg-bg-soft border border-bg-border rounded-lg ring-1 ring-transparent
       ${size === 'lg' ? 'h-12 px-4 text-sm' : 'h-9 px-3 text-sm'}
       text-fg placeholder:text-fg-dim
-      transition
-      focus:outline-none focus:border-accent focus:shadow-focus
+      transition-all duration-150 ease-out
+      focus:outline-none focus:border-accent focus:ring-accent/25 focus:shadow-focus
+      hover:border-bg-border-strong
       disabled:opacity-50
       ${className}
     `}
@@ -24,10 +25,12 @@ export const Select = React.forwardRef<HTMLSelectElement, React.SelectHTMLAttrib
     <select
       ref={ref}
       className={`
-        w-full h-9 px-3 text-sm rounded-lg
+        w-full h-9 px-3 text-sm rounded-lg ring-1 ring-transparent
         bg-bg-soft border border-bg-border text-fg
-        focus:outline-none focus:border-accent focus:shadow-focus
-        transition appearance-none pr-8
+        transition-all duration-150 ease-out
+        focus:outline-none focus:border-accent focus:ring-accent/25 focus:shadow-focus
+        hover:border-bg-border-strong
+        appearance-none pr-8
         bg-[url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'><path fill='%238a91a3' d='M2 4l4 4 4-4z'/></svg>")]
         bg-no-repeat bg-[right_0.75rem_center]
         ${className}

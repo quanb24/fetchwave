@@ -8,9 +8,10 @@ interface Props extends React.HTMLAttributes<HTMLDivElement> {
 export const Card: React.FC<Props> = ({ interactive, elevated, className = '', ...rest }) => (
   <div
     className={`
-      rounded-2xl bg-bg-card border border-bg-border
+      rounded-xl bg-bg-card border border-bg-border
+      ring-1 ring-bg-border-inner
       ${elevated ? 'shadow-elevated' : 'shadow-card'}
-      ${interactive ? 'transition hover:border-bg-border-strong hover:bg-bg-elevated cursor-pointer' : ''}
+      ${interactive ? 'transition-all duration-150 ease-out hover:border-bg-border-strong hover:bg-bg-elevated hover:shadow-elevated cursor-pointer' : ''}
       ${className}
     `}
     {...rest}
