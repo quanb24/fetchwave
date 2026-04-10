@@ -111,8 +111,11 @@ export function registerIpc(getWindow: () => BrowserWindow | null): DownloadQueu
 
   ipcMain.handle(IPC.systemRestart, async () => {
     logger.info('[ipc] system:restart requested');
-    app.relaunch();
-    app.exit(0);
+    app.relaunch({ execPath: process.execPath, args: process.argv.slice(1) });
+    // quit() instead of exit(0) — gives before-quit handlers time to clean up
+    // and avoids a race on Windows where exit(0) fires before the relaunch
+    // child process is fully spawned.
+    app.quit();
     return ok(undefined);
   });
 
