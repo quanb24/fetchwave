@@ -1,0 +1,80 @@
+name: Bug Report
+description: Report a bug or unexpected behavior in Fetchwave
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Please fill out the sections below so we can reproduce and fix it.
+
+  - type: input
+    id: version
+    attributes:
+      label: Fetchwave version
+      description: "Found in Settings or the sidebar (e.g. 1.0.0-rc.4)"
+      placeholder: "1.0.0-rc.4"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Operating system
+      options:
+        - macOS (Apple Silicon)
+        - macOS (Intel)
+        - Windows 10
+        - Windows 11
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe the bug. What did you expect vs what actually happened?
+      placeholder: "I clicked Download and nothing happened..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Minimal steps to trigger the bug.
+      placeholder: |
+        1. Paste URL: ...
+        2. Select format: ...
+        3. Click Download
+        4. See error: ...
+    validations:
+      required: true
+
+  - type: input
+    id: url
+    attributes:
+      label: URL (if applicable)
+      description: The URL you were trying to download. Leave blank if not relevant.
+      placeholder: "https://youtube.com/watch?v=..."
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log file
+      description: |
+        Attach or paste the relevant log file. Find it at:
+        - **macOS:** `~/Library/Logs/Fetchwave/main.log`
+        - **Windows:** `%APPDATA%\Fetchwave\logs\main.log`
+      render: text
+    validations:
+      required: false
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: Attach screenshots if they help explain the issue.
+    validations:
+      required: false
