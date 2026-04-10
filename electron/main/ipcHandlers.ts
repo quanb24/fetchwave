@@ -115,22 +115,52 @@ export function registerIpc(getWindow: () => BrowserWindow | null): DownloadQueu
     logger.info('[ipc] system:restart requested');
 
     if (process.platform === 'win32') {
-      // On Windows the app can end up running from a temp directory (NSIS
-      // "Run after install" or electron-updater extraction).  app.relaunch()
-      // inherits process.execPath which points into that temp dir — and
-      // Windows can clean it up before the new process starts, so the exe
-      // vanishes.  Instead we find the real installed path and spawn it as
-      // an independent process that survives our exit.
+      // On Windows the app often runs from a temp directory (NSIS "Run after
+      // install" or electron-updater extraction).  That temp dir gets cleaned
+      // up when the process exits, so app.relaunch() fails — the exe and all
+      // bundled resources vanish.
+      //
+      // Strategy: find the real installed exe by searching known NSIS install
+      // paths, then spawn it as a detached process.  If the app was never
+      // properly installed (all paths missing), fall back to app.relaunch()
+      // which at least works when NOT in a temp dir.
+      const candidates: string[] = [];
       const localAppData = process.env.LOCALAPPDATA ?? '';
-      const installedExe = path.join(localAppData, 'Programs', 'Fetchwave', 'Fetchwave.exe');
-      const exePath = (localAppData && fs.existsSync(installedExe))
-        ? installedExe
-        : process.execPath;  // fallback if not found (dev mode, portable, etc.)
-      logger.info(`[ipc] restart: spawning ${exePath}`);
-      spawn(exePath, { detached: true, stdio: 'ignore' }).unref();
-      app.exit(0);
+      const programFiles = process.env['ProgramFiles'] ?? '';
+      const programFilesX86 = process.env['ProgramFiles(x86)'] ?? '';
+      if (localAppData) candidates.push(path.join(localAppData, 'Programs', 'Fetchwave', 'Fetchwave.exe'));
+      if (programFiles) candidates.push(path.join(programFiles, 'Fetchwave', 'Fetchwave.exe'));
+      if (programFilesX86) candidates.push(path.join(programFilesX86, 'Fetchwave', 'Fetchwave.exe'));
+
+      const installedExe = candidates.find((p) => fs.existsSync(p));
+      const isInTemp = process.execPath.toLowerCase().includes('\\temp\\');
+
+      if (installedExe) {
+        logger.info(`[ipc] restart: spawning installed exe ${installedExe}`);
+        spawn(installedExe, { detached: true, stdio: 'ignore' }).unref();
+        app.exit(0);
+      } else if (!isInTemp) {
+        // Not in a temp dir and no separate installed exe — we ARE the
+        // installed copy (e.g. portable or custom install path).
+        logger.info(`[ipc] restart: app.relaunch() from ${process.execPath}`);
+        app.relaunch();
+        app.exit(0);
+      } else {
+        // Running from a temp dir with no installed copy found.
+        // Restart would just open a broken instance with missing resources.
+        logger.warn('[ipc] restart: running from temp dir and no installed exe found — showing dialog');
+        dialog.showMessageBoxSync({
+          type: 'info',
+          title: 'Restart',
+          message: 'Fetchwave needs to be installed before Restart can work.\n\n'
+            + 'Please close the app and run the installer again — this time, '
+            + 'let the install wizard finish completely.\n\n'
+            + 'After installing, launch from the desktop shortcut or Start Menu.',
+          buttons: ['OK'],
+        });
+      }
     } else {
-      // macOS / Linux — app.relaunch() works reliably (no temp-dir issue).
+      // macOS / Linux — app.relaunch() works reliably.
       app.relaunch();
       app.exit(0);
     }
