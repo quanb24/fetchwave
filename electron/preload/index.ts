@@ -43,6 +43,7 @@ const api: ApiSurface = {
     openFile: (p) => ipcRenderer.invoke(IPC.systemOpenFile, p),
     getVersion: () => ipcRenderer.invoke(IPC.systemGetVersion),
     restart: () => ipcRenderer.invoke(IPC.systemRestart),
+    diskUsage: (p?: string) => ipcRenderer.invoke(IPC.systemDiskUsage, p),
   },
   on: {
     jobUpdated: (cb) => {

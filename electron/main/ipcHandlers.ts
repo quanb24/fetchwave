@@ -6,6 +6,7 @@ import { IPC } from '../ipc/channels';
 import { DownloadQueue } from '../services/queue';
 import { detect, analyze } from '../services/ytdlp';
 import { runDiagnostics } from '../services/diagnostics';
+import { getDiskUsage } from '../services/diskUsage';
 import { loadSettings, updateSettings } from './settingsStore';
 import { loadQueue, saveQueue } from './queueStore';
 import { AppError } from '../domain/errors';
@@ -110,6 +111,13 @@ export function registerIpc(getWindow: () => BrowserWindow | null): DownloadQueu
   });
 
   ipcMain.handle(IPC.systemGetVersion, async () => ok(app.getVersion()));
+
+  ipcMain.handle(IPC.systemDiskUsage, async (_e, p?: string) => {
+    try {
+      const target = p && p.trim() ? p : loadSettings().downloadPath;
+      return ok(await getDiskUsage(target));
+    } catch (e) { return fail(e); }
+  });
 
   ipcMain.handle(IPC.systemRestart, async () => {
     logger.info('[ipc] system:restart requested');

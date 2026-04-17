@@ -5,6 +5,7 @@ import type { AppErrorJSON } from '../domain/errors';
 import type { DiagnosticsReport } from '../services/diagnostics';
 import type { UpdateState } from '../services/updater';
 import type { RepairProgress } from '../services/repair';
+import type { DiskUsage } from '../services/diskUsage';
 
 export const IPC = {
   ytdlpDetect: 'ytdlp:detect',
@@ -38,6 +39,7 @@ export const IPC = {
   systemOpenFile: 'system:openFile',
   systemGetVersion: 'system:getVersion',
   systemRestart: 'system:restart',
+  systemDiskUsage: 'system:diskUsage',
   evtJobUpdated: 'evt:jobUpdated',
   evtJobAdded: 'evt:jobAdded',
   evtJobRemoved: 'evt:jobRemoved',
@@ -110,6 +112,7 @@ export interface ApiSurface {
     openFile(p: string): Promise<IpcResult<void>>;
     getVersion(): Promise<IpcResult<string>>;
     restart(): Promise<IpcResult<void>>;
+    diskUsage(path?: string): Promise<IpcResult<DiskUsage | null>>;
   };
   on: {
     jobUpdated(cb: (job: DownloadJob) => void): () => void;

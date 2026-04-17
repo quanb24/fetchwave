@@ -44,6 +44,15 @@ const AppInner: React.FC = () => {
   const updateState = useUpdaterStore((s) => s.state);
   const toast = useToast();
 
+  // IPC listener bindings must re-attach on every mount — including the
+  // StrictMode dev-only unmount/remount cycle — otherwise the cleanup removes
+  // them and the guarded one-shot effect below skips the re-bind.
+  useEffect(() => {
+    const unbindQueue = bindQueue();
+    const unbindUpdater = bindUpdater();
+    return () => { unbindQueue(); unbindUpdater(); };
+  }, [bindQueue, bindUpdater]);
+
   // Run startup tasks exactly once. Toast / store function refs are intentionally
   // NOT in the deps array — including them caused an infinite re-run loop that
   // spammed the diagnostics toast.
@@ -56,8 +65,6 @@ const AppInner: React.FC = () => {
     void loadSettings().then(() => log.info('app', 'Settings loaded'));
     void refreshQueue().then(() => log.info('app', 'Queue refreshed'));
     void refreshDiag().then(() => log.info('app', 'Diagnostics refreshed'));
-    const unbindQueue = bindQueue();
-    const unbindUpdater = bindUpdater();
 
     void window.api.detect().then((r) => {
       if (r.ok) {
@@ -87,8 +94,6 @@ const AppInner: React.FC = () => {
           : 'Some bundled tools failed to launch. Open Settings → Self-heal.',
       );
     });
-
-    return () => { unbindQueue(); unbindUpdater(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

@@ -5,9 +5,13 @@ import { FormatModal } from '../components/FormatModal';
 import { Card, CardBody } from '../components/ui/Card';
 import { SectionHeader } from '../components/ui/SectionHeader';
 import { Badge } from '../components/ui/Badge';
+import { DiskUsagePanel } from '../components/DiskUsagePanel';
 import { useSettingsStore } from '../store/settingsStore';
 import { useHistoryStore } from '../store/historyStore';
+import { useQueueStore } from '../store/queueStore';
 import { useToast } from '../components/ui/Toast';
+import { ProgressBar } from '../components/ProgressBar';
+import { Thumbnail } from '../components/Thumbnail';
 import type { MediaInfo } from '../../electron/domain/media';
 import type { QualityPreset } from '../../electron/domain/settings';
 
@@ -26,8 +30,45 @@ export const HomeScreen: React.FC = () => {
 
   const settings = useSettingsStore((s) => s.settings);
   const update = useSettingsStore((s) => s.update);
-  const history = useHistoryStore((s) => s.entries).slice(0, 4);
+  const history = useHistoryStore((s) => s.entries).slice(0, 3);
   const removeFromHistory = useHistoryStore((s) => s.remove);
+  const queueJobs = useQueueStore((s) => s.jobs);
+  const queueOrder = useQueueStore((s) => s.order);
+  const { activeJob, nextQueued, fallbackJob } = React.useMemo(() => {
+    let running: typeof queueJobs[string] | null = null;
+    let queued: typeof queueJobs[string] | null = null;
+    let fallback: typeof queueJobs[string] | null = null;
+
+    for (const id of queueOrder) {
+      const j = queueJobs[id];
+      if (!j || j.isPlaylistParent) continue;
+
+      if (!running && j.status === 'running') {
+        running = j;
+      } else if (!queued && j.status === 'queued') {
+        queued = j;
+      } else if (
+        !fallback &&
+        j.status !== 'completed' &&
+        j.status !== 'failed' &&
+        j.status !== 'cancelled'
+      ) {
+        fallback = j;
+      }
+
+      if (running && queued && fallback) break;
+    }
+
+    return { activeJob: running, nextQueued: queued, fallbackJob: fallback };
+  }, [queueJobs, queueOrder]);
+
+  const heroJob = activeJob ?? nextQueued ?? fallbackJob ?? null;
+
+  const heroState: 'running' | 'queued' | 'active' | null =
+    activeJob ? 'running' :
+    nextQueued ? 'queued' :
+    fallbackJob ? 'active' :
+    null;
   const toast = useToast();
 
   useEffect(() => { inputRef.current?.focus(); }, []);
@@ -136,6 +177,108 @@ export const HomeScreen: React.FC = () => {
         </CardBody>
       </Card>
 
+      {/* Hero: Now downloading / Up next */}
+      {heroJob && (
+        <div className="mt-10">
+          <SectionHeader
+            title={
+              heroState === 'running'
+                ? 'Now downloading'
+                : heroState === 'queued'
+                  ? 'Up next'
+                  : 'In progress'
+            }
+            description={
+              heroState === 'running'
+                ? 'Live progress from the queue'
+                : heroState === 'queued'
+                  ? 'Next item waiting in queue'
+                  : 'Active job currently being prepared'
+            }
+          />
+
+          <Card elevated className="overflow-hidden">
+            <CardBody className="!p-5">
+              <div className="flex items-start gap-4">
+                <Thumbnail
+                  title={heroJob.title ?? heroJob.url}
+                  status={heroState === 'running' ? 'running' : 'queued'}
+                  size={48}
+                />
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Badge
+                      tone={
+                        heroState === 'running'
+                          ? 'accent'
+                          : heroState === 'queued'
+                            ? 'muted'
+                            : 'warn'
+                      }
+                      dot
+                    >
+                      {heroState === 'running'
+                        ? 'Downloading'
+                        : heroState === 'queued'
+                          ? 'Queued'
+                          : 'In progress'}
+                    </Badge>
+
+                    {heroState === 'running' && heroJob.progress.fragment && (
+                      <Badge tone="muted">
+                        FRAG {heroJob.progress.fragment.current} / {heroJob.progress.fragment.total}
+                      </Badge>
+                    )}
+                  </div>
+
+                  <div className="text-sm font-semibold text-fg truncate">
+                    {heroJob.title ?? heroJob.url}
+                  </div>
+
+                  {heroState === 'running' ? (
+                    <>
+                      <div className="mt-3">
+                        <ProgressBar value={heroJob.progress.percent} status="running" />
+                      </div>
+
+                      <div className="mt-2 flex items-center justify-between text-[11px] text-fg-muted">
+                        <span className="font-mono text-fg">
+                          {heroJob.progress.percent.toFixed(1)}%
+                        </span>
+
+                        <span className="flex gap-4">
+                          {heroJob.progress.speed && (
+                            <span className="font-mono">{heroJob.progress.speed}</span>
+                          )}
+                          {heroJob.progress.eta && (
+                            <span>
+                              ETA <span className="font-mono">{heroJob.progress.eta}</span>
+                            </span>
+                          )}
+                        </span>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="mt-3 text-xs text-fg-muted">
+                      {heroState === 'queued'
+                        ? 'Waiting for an available slot…'
+                        : 'Working on this download…'}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+        </div>
+      )}
+
+      {!heroJob && (
+        <div className="mt-10 text-sm text-fg-muted">
+          No active downloads. Paste a link above to get started.
+        </div>
+      )}
+
       {/* Quick presets */}
       <div className="mt-10">
         <SectionHeader title="Quality preset" description="Used for the quick Download button" />
@@ -225,6 +368,12 @@ export const HomeScreen: React.FC = () => {
         <span>Concurrency <span className="text-fg-muted">{settings?.concurrency}</span></span>
         <span>·</span>
         <span>Retries <span className="text-fg-muted">{settings?.maxRetries}</span></span>
+        {settings?.downloadPath && (
+          <>
+            <span>·</span>
+            <DiskUsagePanel path={settings.downloadPath} variant="compact" />
+          </>
+        )}
       </div>
 
       {(analyzing || info) && (

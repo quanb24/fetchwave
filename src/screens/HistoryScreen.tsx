@@ -1,10 +1,14 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { useHistoryStore } from '../store/historyStore';
 import { EmptyState } from '../components/EmptyState';
 import { Button } from '../components/Button';
 import { Card, CardBody } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Thumbnail } from '../components/Thumbnail';
+import { ArrowDown, ArrowUp } from 'lucide-react';
+
+type SortField = 'date' | 'size';
+type SortDir = 'desc' | 'asc';
 
 function fmtBytes(b: number | null): string {
   if (!b) return '';
@@ -18,6 +22,27 @@ function fmtBytes(b: number | null): string {
 export const HistoryScreen: React.FC = () => {
   const entries = useHistoryStore((s) => s.entries);
   const clear = useHistoryStore((s) => s.clear);
+  const [sortField, setSortField] = useState<SortField>('date');
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
+
+  const sorted = useMemo(() => {
+    const sign = sortDir === 'desc' ? -1 : 1;
+    return [...entries].sort((a, b) => {
+      if (sortField === 'size') {
+        return ((a.bytes ?? 0) - (b.bytes ?? 0)) * sign;
+      }
+      return (a.finishedAt - b.finishedAt) * sign;
+    });
+  }, [entries, sortField, sortDir]);
+
+  const toggle = (field: SortField) => {
+    if (sortField === field) {
+      setSortDir((d) => (d === 'desc' ? 'asc' : 'desc'));
+    } else {
+      setSortField(field);
+      setSortDir('desc');
+    }
+  };
 
   if (entries.length === 0) {
     return (
@@ -33,17 +58,40 @@ export const HistoryScreen: React.FC = () => {
     );
   }
 
+  const SortButton: React.FC<{ field: SortField; label: string }> = ({ field, label }) => {
+    const active = sortField === field;
+    const Icon = active && sortDir === 'asc' ? ArrowUp : ArrowDown;
+    return (
+      <button
+        onClick={() => toggle(field)}
+        className={`flex items-center gap-1 px-2.5 h-7 rounded-md text-[11px] transition-colors ${
+          active
+            ? 'bg-accent-soft text-accent border border-accent/30'
+            : 'text-fg-dim hover:text-fg hover:bg-bg-elevated border border-transparent'
+        }`}
+      >
+        {label}
+        <Icon size={11} className={active ? '' : 'opacity-50'} />
+      </button>
+    );
+  };
+
   return (
     <div className="max-w-4xl mx-auto w-full px-8 py-8 space-y-4 animate-fade-in">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-2">
           <h2 className="text-sm font-semibold text-fg">{entries.length} {entries.length === 1 ? 'download' : 'downloads'}</h2>
         </div>
-        <Button size="sm" variant="ghost" onClick={clear}>Clear history</Button>
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] text-fg-dim mr-1">Sort by</span>
+          <SortButton field="date" label="Date" />
+          <SortButton field="size" label="Size" />
+          <Button size="sm" variant="ghost" onClick={clear}>Clear history</Button>
+        </div>
       </div>
 
       <div className="space-y-2">
-        {entries.map((e) => (
+        {sorted.map((e) => (
           <Card key={e.id}>
             <CardBody className="!p-4 flex items-center gap-4">
               <Thumbnail title={e.title} status="completed" size={48} />

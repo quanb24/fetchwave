@@ -18,6 +18,24 @@ function fmtBytes(b: number | null | undefined): string {
   return `${n.toFixed(1)} ${u[i]}`;
 }
 
+function parseSpeedBps(s: string | null | undefined): number {
+  if (!s) return 0;
+  const m = /^\s*([\d.]+)\s*([KMGT]?)(i?B)\/s\s*$/i.exec(s);
+  if (!m) return 0;
+  const n = parseFloat(m[1]);
+  if (!Number.isFinite(n)) return 0;
+  const mul: Record<string, number> = { '': 1, K: 1024, M: 1024 ** 2, G: 1024 ** 3, T: 1024 ** 4 };
+  return n * (mul[m[2].toUpperCase()] ?? 0);
+}
+
+function fmtRate(bps: number): string {
+  if (bps <= 0) return '—';
+  const u = ['B/s', 'KB/s', 'MB/s', 'GB/s'];
+  let i = 0; let n = bps;
+  while (n >= 1024 && i < u.length - 1) { n /= 1024; i++; }
+  return `${n.toFixed(n >= 100 || i === 0 ? 0 : 1)} ${u[i]}`;
+}
+
 const statusBadge: Record<DownloadStatus, { tone: 'neutral' | 'accent' | 'success' | 'warn' | 'danger' | 'muted'; label: string }> = {
   queued:    { tone: 'muted',   label: 'Queued' },
   running:   { tone: 'accent',  label: 'Downloading' },
@@ -68,16 +86,20 @@ const JobCard: React.FC<{ job: DownloadJob; indent?: boolean }> = ({ job, indent
               <ProgressBar value={job.progress.percent} status={job.status} />
             </div>
 
-            <div className="mt-2 flex items-center justify-between text-[11px] text-fg-muted">
-              <span className="font-mono text-fg">
-                {job.status === 'completed'
-                  ? fmtBytes(job.progress.totalBytes) || '100%'
-                  : `${job.progress.percent.toFixed(1)}%`}
+            <div className="mt-2 flex items-center justify-between text-[11px] text-fg-muted gap-3">
+              <span className="flex items-center gap-2 min-w-0">
+                <span className="font-mono text-fg tabular-nums">
+                  {job.status === 'completed'
+                    ? fmtBytes(job.progress.totalBytes) || '100%'
+                    : `${job.progress.percent.toFixed(1)}%`}
+                </span>
                 {job.progress.fragment && job.status !== 'completed' && (
-                  <span className="text-fg-dim ml-2">{job.progress.fragment.current}/{job.progress.fragment.total}</span>
+                  <span className="font-mono text-[10px] px-1.5 py-0.5 rounded-md bg-bg-soft border border-bg-border text-fg-muted">
+                    FRAG {job.progress.fragment.current} / {job.progress.fragment.total}
+                  </span>
                 )}
               </span>
-              <span className="flex gap-4">
+              <span className="flex gap-4 shrink-0">
                 {job.status !== 'completed' && job.progress.speed && <span className="font-mono">{job.progress.speed}</span>}
                 {job.status !== 'completed' && job.progress.eta && <span>ETA <span className="font-mono">{job.progress.eta}</span></span>}
                 {job.status === 'completed' && job.outputFile && (
@@ -87,8 +109,16 @@ const JobCard: React.FC<{ job: DownloadJob; indent?: boolean }> = ({ job, indent
             </div>
 
             {job.error && (job.status === 'failed' || retrying) && (
-              <div className={`mt-3 text-[11px] px-3 py-2 rounded-lg border ${retrying ? 'border-warn/30 bg-warn/5 text-warn' : 'border-danger/30 bg-danger/5 text-danger'}`}>
-                <span className="font-mono opacity-70">[{job.error.code}]</span> {job.error.message}
+              <div className={`mt-3 text-[11px] px-3 py-2 rounded-lg border flex items-start gap-2 ${retrying ? 'border-warn/30 bg-warn/5 text-warn' : 'border-danger/30 bg-danger/5 text-danger'}`}>
+                <span className={`font-mono text-[10px] px-1.5 py-0.5 rounded border shrink-0 ${retrying ? 'border-warn/40 bg-warn/10' : 'border-danger/40 bg-danger/10'}`}>
+                  {job.error.code}
+                </span>
+                <span className="flex-1 min-w-0">
+                  <span className="block">{job.error.message}</span>
+                  {!retrying && job.status === 'failed' && job.error.retryable && (
+                    <span className="block mt-0.5 text-[10px] opacity-80">Press Resume to retry this download.</span>
+                  )}
+                </span>
               </div>
             )}
           </div>
@@ -217,17 +247,23 @@ export const QueueScreen: React.FC = () => {
     return { parents, standalone, childrenByParent };
   }, [order, jobs]);
 
-  const total = order.length;
-  const active = order.filter((id) => {
-    const j = jobs[id];
-    return j && (j.status === 'running' || j.status === 'queued');
-  }).length;
-  const completed = order.filter((id) => {
-    const j = jobs[id];
-    return j && (j.status === 'completed' || j.status === 'cancelled' || j.status === 'failed');
-  }).length;
+  const summary = useMemo(() => {
+    const counts = { total: 0, running: 0, queued: 0, paused: 0, completed: 0, failed: 0, cancelled: 0 };
+    let speedBps = 0;
+    for (const id of order) {
+      const j = jobs[id];
+      if (!j || j.isPlaylistParent) continue;
+      counts.total++;
+      counts[j.status]++;
+      if (j.status === 'running') speedBps += parseSpeedBps(j.progress.speed);
+    }
+    const terminal = counts.completed + counts.failed + counts.cancelled;
+    return { ...counts, terminal, speedBps };
+  }, [order, jobs]);
 
-  if (total === 0) {
+  const completed = summary.terminal;
+
+  if (order.length === 0) {
     return (
       <EmptyState
         title="Queue is empty"
@@ -243,16 +279,33 @@ export const QueueScreen: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto w-full px-8 py-8 space-y-4 animate-fade-in">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <h2 className="text-sm font-semibold text-fg">{total} {total === 1 ? 'item' : 'items'}</h2>
-          {active > 0 && <Badge tone="accent" dot>{active} active</Badge>}
-          {completed > 0 && <Badge tone="muted">{completed} done</Badge>}
-        </div>
-        {completed > 0 && (
-          <Button size="sm" variant="ghost" onClick={() => clearCompleted()}>Clear completed</Button>
-        )}
-      </div>
+      <Card>
+        <CardBody className="!py-4 !px-5">
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-sm font-semibold text-fg mr-1">
+                {summary.total} {summary.total === 1 ? 'item' : 'items'}
+              </span>
+              {summary.running > 0  && <Badge tone="accent"  dot>{summary.running} downloading</Badge>}
+              {summary.queued > 0   && <Badge tone="muted">{summary.queued} queued</Badge>}
+              {summary.paused > 0   && <Badge tone="warn">{summary.paused} paused</Badge>}
+              {summary.failed > 0   && <Badge tone="danger">{summary.failed} failed</Badge>}
+              {summary.completed > 0 && <Badge tone="success">{summary.completed} done</Badge>}
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="text-right">
+                <div className="text-[10px] uppercase tracking-wider text-fg-dim">Combined speed</div>
+                <div className="text-sm font-mono text-fg tabular-nums">
+                  {summary.running > 0 ? fmtRate(summary.speedBps) : '—'}
+                </div>
+              </div>
+              {completed > 0 && (
+                <Button size="sm" variant="ghost" onClick={() => clearCompleted()}>Clear completed</Button>
+              )}
+            </div>
+          </div>
+        </CardBody>
+      </Card>
       <div className="space-y-3">
         {groups.standalone.map((j) => <JobCard key={j.id} job={j} />)}
         {groups.parents.map((p) => (

@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import type { AppSettings, CollisionStrategy, Container, QualityPreset, Theme } from '../../electron/domain/settings';
 import type { BinaryStatus } from '../../electron/services/diagnostics';
+import { DiskUsagePanel } from '../components/DiskUsagePanel';
 
 /* ─── Local primitives ─── */
 
@@ -208,6 +209,7 @@ export const SettingsScreen: React.FC = () => {
             <Input value={settings.downloadPath} onChange={(e) => set('downloadPath', e.target.value)} />
             <Button variant="secondary" onClick={() => pickFolder('downloadPath')}>Browse</Button>
           </div>
+          <DiskUsagePanel path={settings.downloadPath} className="mt-3" />
         </Row>
         <Row label="Preferred container" description="Output file format when merging streams">
           <Select value={settings.preferredContainer} onChange={(e) => set('preferredContainer', e.target.value as Container)}>
